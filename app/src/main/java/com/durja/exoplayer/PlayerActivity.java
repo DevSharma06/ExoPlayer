@@ -12,6 +12,8 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.dash.DashMediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -35,10 +37,16 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void initializePlayer() {
-        Uri uri = Uri.parse(getString(R.string.media_url_mp4));
+        Uri uri = Uri.parse(getString(R.string.media_url_dash));
         MediaSource mediaSource = buildMediaSource(uri);
 
-        player = ExoPlayerFactory.newSimpleInstance(this);
+        //player = ExoPlayerFactory.newSimpleInstance(this);
+        //To use less bandwidth
+        if(player ==  null) {
+            DefaultTrackSelector trackSelector = new DefaultTrackSelector();
+            trackSelector.setParameters(trackSelector.buildUponParameters().setMaxVideoSizeSd());
+            player = ExoPlayerFactory.newSimpleInstance(this,trackSelector);
+        }
         playerView.setPlayer(player);
 
         player.setPlayWhenReady(playWhenReady);
@@ -49,16 +57,26 @@ public class PlayerActivity extends AppCompatActivity {
     private MediaSource buildMediaSource(Uri uri) {
         DataSource.Factory dataSourceFactory =
                 new DefaultDataSourceFactory(this, "exoplayer-codelab");
-        ProgressiveMediaSource.Factory mediaSourceFactory = new ProgressiveMediaSource.Factory(dataSourceFactory);
+
+        //Dash is used for Adpative streaming i.e. to use less bandwidth
+        DashMediaSource.Factory mediaSourceFactory = new DashMediaSource.Factory(dataSourceFactory);
+
+        return mediaSourceFactory.createMediaSource(uri);
+
+        //To concatenate 2 media sources
+        /*ProgressiveMediaSource.Factory mediaSourceFactory = new ProgressiveMediaSource.Factory(dataSourceFactory);
 
         //Creating media source using URI
         MediaSource mediaSource1 = mediaSourceFactory.createMediaSource(uri);
 
         Uri audioUri = Uri.parse(getString(R.string.media_url_mp3));
         MediaSource mediaSource2 = mediaSourceFactory.createMediaSource(audioUri);
+
+        return new ConcatenatingMediaSource(mediaSource1,mediaSource2);*/
+
+        //A progressive media source is one which is obtained through progressive download.
         /*return new ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(uri);*/
-        return new ConcatenatingMediaSource(mediaSource1,mediaSource2);
     }
 
     @SuppressLint("InlinedApi")
