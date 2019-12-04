@@ -9,6 +9,7 @@ import android.view.View;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -48,8 +49,16 @@ public class PlayerActivity extends AppCompatActivity {
     private MediaSource buildMediaSource(Uri uri) {
         DataSource.Factory dataSourceFactory =
                 new DefaultDataSourceFactory(this, "exoplayer-codelab");
-        return new ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(uri);
+        ProgressiveMediaSource.Factory mediaSourceFactory = new ProgressiveMediaSource.Factory(dataSourceFactory);
+
+        //Creating media source using URI
+        MediaSource mediaSource1 = mediaSourceFactory.createMediaSource(uri);
+
+        Uri audioUri = Uri.parse(getString(R.string.media_url_mp3));
+        MediaSource mediaSource2 = mediaSourceFactory.createMediaSource(audioUri);
+        /*return new ProgressiveMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(uri);*/
+        return new ConcatenatingMediaSource(mediaSource1,mediaSource2);
     }
 
     @SuppressLint("InlinedApi")
